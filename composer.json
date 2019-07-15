@@ -1,10 +1,13 @@
 {
-    "name": "laravel/laravel",
+    "name": "compy/elastos-did-auth-sample",
     "type": "project",
-    "description": "The Laravel Framework.",
+    "description": "A sample showing off webapp authentication with the Elastos DID blockchain and Elaphant wallet",
     "keywords": [
-        "framework",
-        "laravel"
+        "demo",
+        "laravel",
+        "authentication",
+        "security",
+        "blockchain"
     ],
     "license": "MIT",
     "require": {
