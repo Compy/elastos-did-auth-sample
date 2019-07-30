@@ -125,7 +125,7 @@ class ELAAuthController extends Controller
         $request->session()->put('elaState', $random);
 
         $urlParams = [
-            'CallbackUrl'   => 'https://ccb7ffa7.ngrok.io/api/did/callback',
+            'CallbackUrl'   => env('ELA_CALLBACK'),
             'Description'   => 'Elastos DID Authentication',
             'AppID'         => $appId,
             'PublicKey'     => $publicKey,
