@@ -5,12 +5,27 @@ namespace App\Http\Controllers;
 use App\DIDAuthRequest;
 use App\User;
 use DateTime;
+use App\ElaAuthService;
 use Illuminate\Http\Request;
 use Elliptic\EC;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\URL;
 
 class ELAAuthController extends Controller
 {
+    protected $elaAuthService;
+    public function __construct()
+    {
+        $this->elaAuthService = new ElaAuthService();
+        $this->elaAuthService->setCredentials(
+            env('ELA_PUBLIC_KEY'),
+            env('ELA_PRIVATE_KEY'),
+            env('ELA_APP_ID'),
+            env('ELA_DID'),
+            env('ELA_APP_NAME')
+        );
+    }
+
     /**
      * Request from the AJAX side that checks whether or not we've received an authentication from
      * the phone/wallet app
@@ -107,39 +122,14 @@ class ELAAuthController extends Controller
      */
     public function authOrRegister(Request $request)
     {
-        // Snag our local application configuration variables for signing the requests
-        $privateKey = env('ELA_PRIVATE_KEY');
-        $publicKey = env('ELA_PUBLIC_KEY');
-        $appId = env('ELA_APP_ID');
-        $did = env('ELA_DID');
-        $appName = env('ELA_APP_NAME');
-
         // Sign the app ID with the private key and snag a hex string
-        $ec = new EC('p256');
-        $priv = $ec->keyFromPrivate($privateKey);
-        $sig = $priv->sign($appId)->toDER('hex');
-
-        // Generate a random number for state tracking and save it to our session so the AJAX frontend
-        // can reference it
-        $random = rand(10000000000,999999999999);
-        $request->session()->put('elaState', $random);
-
-        $urlParams = [
-            'CallbackUrl'   => 'https://ccb7ffa7.ngrok.io/api/did/callback',
-            'Description'   => 'Elastos DID Authentication',
-            'AppID'         => $appId,
-            'PublicKey'     => $publicKey,
-            'Signature'     => $sig,
-            'DID'           => $did,
-            'RandomNumber'  => $random,
-            'AppName'       => $appName,
-            'RequestInfo'   => 'Nickname,Email'
-        ];
-
-        $url = 'elaphant://identity?' . http_build_query($urlParams);
+        $authRequest = $this->elaAuthService->generateAuthenticationRequest(
+            ['Nickname', 'Email'],
+            URL::to('/')
+        );
 
         // Save the random number to the database so we can reference it later.
-        $token = new DIDAuthRequest(['state' => $random, 'data' => ['auth' => false]]);
+        $token = new DIDAuthRequest(['state' => $authRequest->getState(), 'data' => ['auth' => false]]);
         $token->save();
 
         // Purge old requests just for housekeeping. Anything older than 2 minutes is definitely expired
@@ -150,7 +140,7 @@ class ELAAuthController extends Controller
 
         // Load the QR view, show the code and auth instructions
         return view('auth.elastos', [
-            'scanUrl' => $url
+            'scanUrl' => $authRequest->getQrCodeUrl()
         ]);
     }
 
