@@ -128,6 +128,7 @@ class ELAAuthController extends Controller
             URL::to('/')
         );
 
+
         // Save the random number to the database so we can reference it later.
         $token = new DIDAuthRequest(['state' => $authRequest->getState(), 'data' => ['auth' => false]]);
         $token->save();
