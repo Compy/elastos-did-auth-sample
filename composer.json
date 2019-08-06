@@ -19,7 +19,8 @@
         "laravel/tinker": "^1.0",
         "mdanter/ecc": "^0.5.2",
         "simplesoftwareio/simple-qrcode": "^2.0",
-        "simplito/elliptic-php": "^1.0"
+        "simplito/elliptic-php": "^1.0",
+        "compy/laravel-elastos-auth": "*"
     },
     "require-dev": {
         "beyondcode/laravel-dump-server": "^1.0",
@@ -66,5 +67,11 @@
         "post-create-project-cmd": [
             "@php artisan key:generate --ansi"
         ]
-    }
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "local-packages/laravel-elastos-auth"
+        }
+    ]
 }
